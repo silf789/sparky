@@ -8,6 +8,8 @@
 
 namespace app\classes;
 
+use app\controller;
+
 
 class Router
 {
