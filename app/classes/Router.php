@@ -10,7 +10,6 @@ namespace app\classes;
 
 use app\controller;
 
-
 class Router
 {
     private $uriParts;
@@ -38,6 +37,7 @@ class Router
     public function setAction()
     {
         $this->action = array_shift($this->uriParts);
+
         return $this;
     }
     public function setOtherParams()
@@ -72,11 +72,15 @@ class Router
         {
             $this->action='index';
         };
-        if (is_callable(array($controller, $this->action)) == false) {
-            die ('404 Not Found');
-        };
-        $route=new $controller($this->otherparams);
-        $action=$this->action;
-        $route->$action();
+        /*var_dump(!is_callable(array($controller, $this->action))); die;*/
+        if (!is_callable(array($controller, $this->action))) {
+            header('HTTP/1.x 404 Not Found');
+            header("Status: 404 Not Found");
+            include("notfound.php");
+        } else {
+            $route=new $controller($this->otherparams);
+            $action=$this->action;
+            $route->$action();
+        }
     }
 } 

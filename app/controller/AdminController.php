@@ -8,11 +8,15 @@
 
 namespace app\controller;
 
-
 class AdminController extends Controller
 {
+    public function setCurrentName()
+    {
+        $this->currentName = 'admin';
+    }
+
     public function index()
     {
-        echo "admin";
+        $this->render('index');
     }
 } 

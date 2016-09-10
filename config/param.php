@@ -20,4 +20,3 @@ function modules()
         'Admin'
     ];
 }
-
