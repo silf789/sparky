@@ -13,10 +13,11 @@ use app\controller;
 class Router
 {
     private $uriParts;
-    private $module;
-    private $action;
+    private $module='';
+    private $action='';
     private $controller;
     public  $otherparams;
+    public $temp='';
 
     public function setUriParts()
     {
@@ -27,17 +28,25 @@ class Router
     public function setModule()
     {
         $temp = array_shift($this->uriParts);
-        if ( (in_array(ucfirst($temp),modules())) && ($temp != '') ) {
-            $this->module = ucfirst($temp);
+        if ($temp == "" OR $temp == null) {
+            $this->module = MAIN;
+            $this->action = "index";
+        } elseif (in_array(ucfirst($temp),modules()) OR ucfirst($temp) == MAIN) {
+             $this->module = ucfirst($temp);
         } else {
             $this->module = MAIN;
+            $this->action = $temp;
         }
         return $this;
     }
     public function setAction()
     {
-        $this->action = array_shift($this->uriParts);
-
+        if ($this->action == '') {
+            $this->action = array_shift($this->uriParts);
+            if ($this->action == '' OR $this->action === NULL) {
+                $this->action = "index";
+            }
+        }
         return $this;
     }
     public function setOtherParams()
@@ -59,28 +68,37 @@ class Router
     {
         $this->setUriParts()
             ->setModule()
-            ->setModuleFile()
             ->setAction()
+            ->setModuleFile()
             ->setOtherParams();
     }
 
     public function start()
     {
-        require CP.$this->controller.'.php';
-        $controller='app\controller\\'.$this->controller;
-        if ('' == $this->action OR null == $this->action)
-        {
-            $this->action='index';
-        };
-        /*var_dump(!is_callable(array($controller, $this->action))); die;*/
-        if (!is_callable(array($controller, $this->action))) {
-            header('HTTP/1.x 404 Not Found');
-            header("Status: 404 Not Found");
-            include("notfound.php");
+        if (file_exists(CP.$this->controller.'.php')) {
+            require CP.$this->controller.'.php';
+            $controller='app\controller\\'.$this->controller;
+            if (!$this->exist($controller)) {
+                $this->notfound();
+            } else {
+                $route=new $controller($this->otherparams);
+                $action=$this->action;
+                $route->$action();
+            }
         } else {
-            $route=new $controller($this->otherparams);
-            $action=$this->action;
-            $route->$action();
+            $this->notfound();
         }
+    }
+
+    public function exist($controller)
+    {
+        return is_callable(array($controller, $this->action));
+    }
+
+    public function notfound()
+    {
+        header('HTTP/1.x 404 Not Found');
+        header("Status: 404 Not Found");
+        include("notfound.php");
     }
 } 
